@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RuleProof — hackathon rules to a checklist you can trust</title>
+  <meta name="description" content="Paste a hackathon's rules. Get a submission checklist where every item points to the sentence it came from, and check your public GitHub repo against it.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231f8a4c'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' stroke='white' stroke-width='3.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="mark" aria-hidden="true">✓</span>
+      <div>
+        <h1>RuleProof</h1>
+        <p class="tagline">Hackathon rules in, submission checklist out. Every item shows the sentence it came from.</p>
+      </div>
+    </div>
+    <nav class="top-actions">
+      <button type="button" class="ghost" id="load-sample">Load sample rules</button>
+      <button type="button" class="ghost" id="clear-all">Clear</button>
+    </nav>
+  </header>
+
+  <main class="grid">
+    <section class="panel rules" aria-labelledby="rules-title">
+      <div class="panel-head">
+        <h2 id="rules-title">Rules</h2>
+        <div class="panel-actions">
+          <button type="button" class="ghost" id="edit-rules" hidden>Edit rules</button>
+          <button type="button" class="primary" id="extract">Extract</button>
+        </div>
+      </div>
+      <textarea id="rules-input" spellcheck="false" placeholder="Paste the full official rules or the hackathon overview here, then press Extract."></textarea>
+      <div id="rules-view" class="rules-view" tabindex="0" hidden></div>
+    </section>
+
+    <section class="panel checklist" aria-labelledby="checklist-title">
+      <div class="panel-head">
+        <h2 id="checklist-title">Checklist</h2>
+        <div class="panel-actions">
+          <button type="button" class="ghost" id="copy-md" disabled>Copy as Markdown</button>
+        </div>
+      </div>
+
+      <div id="empty" class="empty">
+        <p><strong>Paste rules to begin.</strong></p>
+        <p>RuleProof keeps only sentences that state a requirement: deadlines, eligibility, deliverables, video limits and repository files. Click any item to see its source.</p>
+      </div>
+
+      <div id="results" hidden>
+        <div id="deadline" class="deadline"></div>
+
+        <div class="summary" id="summary"></div>
+
+        <form class="repo" id="repo-form">
+          <label for="repo-url">Public GitHub repository</label>
+          <div class="repo-row">
+            <input id="repo-url" type="url" inputmode="url" placeholder="https://github.com/you/your-project" autocomplete="off">
+            <button type="submit" class="primary" id="check-repo">Check repo</button>
+          </div>
+          <p id="repo-status" class="repo-status" role="status"></p>
+        </form>
+
+        <div id="groups"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    Runs in your browser. Rules and ticks stay in this browser's storage; repository checks call the public GitHub API.
+  </footer>
+
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
