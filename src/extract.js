@@ -68,9 +68,16 @@ export function isRequirementHeading(sentence) {
     || /\brequirements?\b[^.]*[:.]$/i.test(s);
 }
 
+function isShouting(s) {
+  const letters = s.replace(/[^A-Za-z]/g, '');
+  return letters.length > 15 && letters.replace(/[^A-Z]/g, '').length / letters.length > 0.7;
+}
+
 export function classify(sentence, { underHeading = false } = {}) {
   const s = sentence;
   if (s.length > 700) return null;
+  if (isShouting(s)) return null; // all-caps legal banners
+  if (s.length < 60 && /:$/.test(s)) return null; // list intros such as "The Hackathon IS open to:" 
   const soft = SOFT.test(s) || /\bnot (required|mandatory)\b/i.test(s);
   const hard = HARD.test(s.replace(/\bnot (required|mandatory)\b/gi, '')) || (underHeading && !soft);
   let category = categoryOf(s);
@@ -215,6 +222,8 @@ export function extract(text, { fallbackYear } = {}) {
     seen.add(key);
 
     const src = { start: s.start, end: s.end, quote: s.text };
+    const prevEnd = n > 0 ? sentences[n - 1].end : 0;
+    if (/\n[ \t]*\n/.test(text.slice(prevEnd, s.start))) headingWindow = 0; // blank line ends a list
     if (isRequirementHeading(s.text)) { headingWindow = 6; continue; }
     if (headingWindow > 0 && s.text.length < 50 && !/[.!?:;]$/.test(s.text)) headingWindow = 0; // next section title
     const underHeading = headingWindow > 0 && s.text.length <= 240;

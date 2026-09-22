@@ -111,3 +111,9 @@ test('"not required" reads as soft, and LICENSE becomes a file item', () => {
 test('"open source license file" asks for a LICENSE', () => {
   assert.deepEqual(findFiles('The repository must be public and should be open source by including an open source license file.'), ['LICENSE']);
 });
+
+test('all-caps banners, list intros and text after a blank line are not requirements', () => {
+  const text = 'What to Submit\nA short description of the project.\n\nNO PURCHASE OR PAYMENT NECESSARY TO ENTER OR WIN.\nThe Hackathon IS open to:\nOther news about the event.';
+  const labels = extract(text).items.map((i) => i.label);
+  assert.deepEqual(labels, ['A short description of the project.']);
+});
