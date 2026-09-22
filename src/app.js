@@ -74,6 +74,17 @@ function statusOf(item, matches) {
   return item.strength === 'hard' ? { key: 'todo', text: 'to do' } : { key: 'optional', text: 'optional' };
 }
 
+const ICONS = {
+  deadline: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+  eligibility: '<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0"/><path d="M16 11l2 2 4-4"/></svg>',
+  deliverable: '<svg viewBox="0 0 24 24"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>',
+  video: '<svg viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="M16 10l6-3v10l-6-3"/></svg>',
+  repository: '<svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="8" r="2.5"/><path d="M6 8.5v7"/><path d="M18 10.5c0 4-6 3-11.5 5.5"/></svg>',
+};
+const TICK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const CROSS = '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const BOLT = '<svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg>';
+
 // ---------- rendering ----------
 
 function render() {
@@ -127,30 +138,37 @@ function renderDeadline() {
   el.deadline.className = 'deadline';
   if (!d) {
     el.deadline.classList.add('none');
-    el.deadline.innerHTML = '<span class="k">Submission deadline</span><span class="written">No dated deadline found in the text. Check the Deadlines items below.</span>';
+    el.deadline.innerHTML = '<div><span class="k">Submission deadline</span><span class="written">No dated deadline found. Check the Deadlines items below.</span></div>';
     return;
   }
-  const local = d.epochMs !== null ? `${formatInZone(d.epochMs, LOCAL_ZONE)} · your time (${LOCAL_ZONE})` : 'Time or time zone not stated';
   el.deadline.innerHTML = `
-    <span class="k">Submission deadline</span>
-    <span class="written"></span>
-    <span class="count" id="countdown"></span>
-    <span class="local"></span>`;
-  el.deadline.querySelector('.written').textContent = `${d.label} (as written)`;
-  el.deadline.querySelector('.local').textContent = local;
-  const count = el.deadline.querySelector('#countdown');
+    <div>
+      <span class="k">Submission deadline</span>
+      <span class="written"></span>
+      <span class="local"></span>
+    </div>
+    <div class="tiles" aria-live="off"></div>`;
+  el.deadline.querySelector('.written').textContent = d.label;
+  const local = el.deadline.querySelector('.local');
+  if (d.epochMs !== null) {
+    local.innerHTML = 'Your time: <b></b>';
+    local.querySelector('b').textContent = formatInZone(d.epochMs, LOCAL_ZONE);
+  } else {
+    local.textContent = 'Time or time zone not stated in the rules';
+  }
+  const tiles = el.deadline.querySelector('.tiles');
   const tick = () => {
-    if (d.epochMs === null) { count.textContent = ''; return; }
+    if (d.epochMs === null) { tiles.remove(); return; }
     const ms = d.epochMs - Date.now();
     if (ms <= 0) {
       el.deadline.classList.add('passed');
-      count.textContent = 'passed';
+      tiles.outerHTML = '<span class="passed-tag">Deadline passed</span>';
       clearInterval(timer);
       return;
     }
     const s = Math.floor(ms / 1000);
-    const dd = Math.floor(s / 86400), hh = Math.floor(s / 3600) % 24, mm = Math.floor(s / 60) % 60, ss = s % 60;
-    count.textContent = `${dd}d ${String(hh).padStart(2, '0')}h ${String(mm).padStart(2, '0')}m ${String(ss).padStart(2, '0')}s`;
+    const parts = [[Math.floor(s / 86400), 'days'], [Math.floor(s / 3600) % 24, 'hrs'], [Math.floor(s / 60) % 60, 'min'], [s % 60, 'sec']];
+    tiles.innerHTML = parts.map(([v, u], i) => `<span class="tile"><b>${i ? String(v).padStart(2, '0') : v}</b><i>${u}</i></span>`).join('');
   };
   tick();
   timer = setInterval(tick, 1000);
@@ -177,7 +195,7 @@ function renderRepo() {
   }
   el.repoStatus.classList.add('ok');
   const when = state.repo.checkedAt ? new Date(state.repo.checkedAt).toLocaleString() : '';
-  el.repoStatus.textContent = `Public · branch ${r.defaultBranch} · ${r.paths.length} files · checked ${when}`;
+  el.repoStatus.textContent = `Public repository · ${r.defaultBranch} · ${r.paths.length} files · checked ${when}`;
 }
 
 function renderGroups() {
@@ -186,33 +204,39 @@ function renderGroups() {
   renderSummary(statuses);
 
   if (!state.items.length) {
-    el.groups.innerHTML = '<p class="nothing">No requirement sentences found. Is this the rules page? Use <b>Edit rules</b> to paste a different text.</p>';
+    el.groups.innerHTML = '<p class="nothing">No requirement sentences found. Is this the rules page? Use <b>Edit</b> to paste a different text.</p>';
     return;
   }
   const frag = document.createDocumentFragment();
+  let index = 0;
   for (const [cat, title] of CATEGORIES) {
     const items = state.items.filter((i) => i.category === cat);
     if (!items.length) continue;
     const g = document.createElement('div');
     g.className = 'group';
-    const h = document.createElement('h3');
     const done = items.filter((i) => ['verified', 'done'].includes(statuses.get(i.id).key)).length;
-    h.innerHTML = `<span>${title}</span><span>${done}/${items.length}</span>`;
-    g.append(h);
-    for (const item of items) g.append(renderItem(item, statuses.get(item.id)));
+    g.innerHTML = `
+      <div class="group-head">
+        <span class="group-icon">${ICONS[cat]}</span>
+        <h3>${title}</h3>
+        <span class="group-count"><span class="mini"><span style="width:${(done / items.length) * 100}%"></span></span>${done}/${items.length}</span>
+      </div>`;
+    for (const item of items) g.append(renderItem(item, statuses.get(item.id), index++));
     frag.append(g);
   }
   el.groups.replaceChildren(frag);
 }
 
-function renderItem(item, st) {
+function renderItem(item, st, index = 0) {
   const row = document.createElement('div');
   row.className = 'item' + (item.id === activeId ? ' active' : '');
   row.dataset.id = item.id;
+  row.style.setProperty('--i', Math.min(index, 30));
 
   if (item.check.type === 'manual') {
     const box = document.createElement('input');
     box.type = 'checkbox';
+    box.className = 'check';
     box.checked = Boolean(state.ticks[item.id]);
     box.setAttribute('aria-label', `Mark done: ${item.label}`);
     box.addEventListener('click', (e) => e.stopPropagation());
@@ -223,9 +247,11 @@ function renderItem(item, st) {
     });
     row.append(box);
   } else {
-    const sp = document.createElement('span');
-    sp.className = 'spacer';
-    row.append(sp);
+    const auto = document.createElement('span');
+    auto.className = 'auto' + (st.key === 'verified' ? ' on' : st.key === 'missing' ? ' off' : '');
+    auto.title = 'Checked automatically against the repository';
+    auto.innerHTML = st.key === 'verified' ? TICK : st.key === 'missing' ? CROSS : BOLT;
+    row.append(auto);
   }
 
   const body = document.createElement('div');
@@ -243,7 +269,14 @@ function renderItem(item, st) {
   if (st.detail) {
     const meta = document.createElement('div');
     meta.className = 'meta';
-    meta.textContent = st.key === 'verified' ? `found at ${st.detail}` : st.detail;
+    if (st.key === 'verified') {
+      meta.append('found at ');
+      const code = document.createElement('code');
+      code.textContent = st.detail;
+      meta.append(code);
+    } else {
+      meta.textContent = st.detail;
+    }
     body.append(meta);
   }
   row.append(body);
@@ -253,8 +286,21 @@ function renderItem(item, st) {
   pill.textContent = st.text;
   row.append(pill);
 
+  if (item.id === activeId) row.append(sourceBlock(item));
   row.addEventListener('click', () => focusItem(item.id, true));
   return row;
+}
+
+function sourceBlock(item) {
+  const box = document.createElement('div');
+  box.className = 'source';
+  const k = document.createElement('span');
+  k.className = 'src-k';
+  k.textContent = 'Source sentence';
+  const q = document.createElement('q');
+  q.textContent = item.quote.replace(/\s+/g, ' ').trim();
+  box.append(k, q);
+  return box;
 }
 
 function renderSummary(statuses) {
@@ -264,20 +310,41 @@ function renderSummary(statuses) {
   const ok = c(['verified', 'done']);
   const bad = c(['missing', 'passed']);
   const todo = c(['todo']);
-  const pct = (x) => (n ? (x / n) * 100 : 0);
+  const pct = n ? Math.round((ok / n) * 100) : 0;
   el.summary.innerHTML = `
-    <div class="bar" aria-hidden="true"><span class="g" style="width:${pct(ok)}%"></span><span class="r" style="width:${pct(bad)}%"></span><span class="a" style="width:${pct(todo)}%"></span></div>
-    <div class="counts"><span><b>${n}</b> items</span><span><b>${ok}</b> done or verified</span><span><b>${bad}</b> missing</span><span><b>${todo}</b> to do</span><span><b>${n - ok - bad - todo}</b> optional or unchecked</span></div>`;
+    <div class="ring" style="--p:${pct}" role="img" aria-label="${pct}% complete"><span>${pct}%</span></div>
+    <div class="stats">
+      <div class="stat ok"><b>${ok}</b><span>Done or verified</span></div>
+      <div class="stat bad"><b>${bad}</b><span>Missing</span></div>
+      <div class="stat warn"><b>${todo}</b><span>To do</span></div>
+      <div class="stat"><b>${n - ok - bad - todo}</b><span>Optional</span></div>
+    </div>`;
+}
+
+// Scroll a container so `target` sits in its middle, without moving the page.
+function scrollWithin(container, target) {
+  const c = container.getBoundingClientRect();
+  const t = target.getBoundingClientRect();
+  container.scrollTo({ top: container.scrollTop + (t.top - c.top) - c.height / 2 + t.height / 2, behavior: 'smooth' });
 }
 
 function focusItem(id, scrollRules) {
-  activeId = id;
+  activeId = activeId === id && scrollRules ? null : id;
   for (const m of el.view.querySelectorAll('mark')) {
-    const on = m.dataset.ids.split(' ').includes(id);
+    const on = activeId !== null && m.dataset.ids.split(' ').includes(activeId);
     m.classList.toggle('active', on);
-    if (on && scrollRules) m.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    if (on && scrollRules) scrollWithin(el.view, m);
   }
-  for (const row of el.groups.querySelectorAll('.item')) row.classList.toggle('active', row.dataset.id === id);
+  for (const row of el.groups.querySelectorAll('.item')) {
+    const on = row.dataset.id === activeId;
+    row.classList.toggle('active', on);
+    const existing = row.querySelector('.source');
+    if (existing && !on) existing.remove();
+    if (on && !existing) {
+      const item = state.items.find((i) => i.id === activeId);
+      if (item) row.append(sourceBlock(item));
+    }
+  }
 }
 
 // ---------- actions ----------
@@ -305,7 +372,7 @@ async function runRepoCheck(e) {
     renderRepo();
     return;
   }
-  el.repoStatus.className = 'repo-status';
+  el.repoStatus.className = 'repo-status busy';
   el.repoStatus.textContent = `Checking ${parsed.owner}/${parsed.repo}…`;
   const result = await checkRepo(parsed.owner, parsed.repo);
   state.repo = { url, result, checkedAt: new Date().toISOString() };
@@ -387,6 +454,7 @@ el.clear.addEventListener('click', () => {
   render();
 });
 el.copy.addEventListener('click', copyMarkdown);
+document.getElementById('empty-sample').addEventListener('click', () => el.sample.click());
 el.repoForm.addEventListener('submit', runRepoCheck);
 el.view.addEventListener('click', (e) => {
   const m = e.target.closest('mark');
@@ -394,7 +462,10 @@ el.view.addEventListener('click', (e) => {
   const id = m.dataset.ids.split(' ')[0];
   focusItem(id, false);
   const row = el.groups.querySelector(`.item[data-id="${id}"]`);
-  if (row) row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  if (row) {
+    const r = row.getBoundingClientRect();
+    if (r.top < 0 || r.bottom > window.innerHeight) window.scrollBy({ top: r.top - window.innerHeight / 2, behavior: 'smooth' });
+  }
 });
 el.input.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) runExtract();

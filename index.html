@@ -5,48 +5,86 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>RuleProof — hackathon rules to a checklist you can trust</title>
   <meta name="description" content="Paste a hackathon's rules. Get a submission checklist where every item points to the sentence it came from, and check your public GitHub repo against it.">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231f8a4c'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' stroke='white' stroke-width='3.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <meta name="theme-color" content="#f4f1ea">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23132238'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' stroke='%23f2d65c' stroke-width='3.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="top">
-    <div class="brand">
-      <span class="mark" aria-hidden="true">✓</span>
-      <div>
-        <h1>RuleProof</h1>
-        <p class="tagline">Hackathon rules in, submission checklist out. Every item shows the sentence it came from.</p>
-      </div>
-    </div>
+    <a class="brand" href="./" aria-label="RuleProof home">
+      <span class="logo" aria-hidden="true">
+        <svg viewBox="0 0 32 32"><rect width="32" height="32" rx="8"/><path d="M9 16.5l4.5 4.5L23 11.5"/></svg>
+      </span>
+      <span class="wordmark">Rule<em>Proof</em></span>
+    </a>
+    <p class="tagline">Every requirement, with the sentence it came from.</p>
     <nav class="top-actions">
-      <button type="button" class="ghost" id="load-sample">Load sample rules</button>
-      <button type="button" class="ghost" id="clear-all">Clear</button>
+      <button type="button" class="btn quiet" id="load-sample">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/></svg>
+        Sample rules
+      </button>
+      <button type="button" class="btn quiet" id="clear-all">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>
+        Clear
+      </button>
     </nav>
   </header>
 
   <main class="grid">
-    <section class="panel rules" aria-labelledby="rules-title">
+    <section class="panel doc" aria-labelledby="rules-title">
       <div class="panel-head">
-        <h2 id="rules-title">Rules</h2>
+        <div class="head-title">
+          <span class="eyebrow">Source</span>
+          <h2 id="rules-title">Official rules</h2>
+        </div>
         <div class="panel-actions">
-          <button type="button" class="ghost" id="edit-rules" hidden>Edit rules</button>
-          <button type="button" class="primary" id="extract">Extract</button>
+          <button type="button" class="btn quiet" id="edit-rules" hidden>Edit</button>
+          <button type="button" class="btn primary" id="extract">
+            Extract checklist
+            <kbd>⌘↵</kbd>
+          </button>
         </div>
       </div>
-      <textarea id="rules-input" spellcheck="false" placeholder="Paste the full official rules or the hackathon overview here, then press Extract."></textarea>
-      <div id="rules-view" class="rules-view" tabindex="0" hidden></div>
+      <div class="paper">
+        <textarea id="rules-input" spellcheck="false" placeholder="Paste the full official rules or the hackathon overview here.&#10;&#10;RuleProof keeps only the sentences that state a requirement and shows you where each one came from."></textarea>
+        <article id="rules-view" class="rules-view" tabindex="0" hidden></article>
+      </div>
     </section>
 
-    <section class="panel checklist" aria-labelledby="checklist-title">
+    <section class="panel app" aria-labelledby="checklist-title">
       <div class="panel-head">
-        <h2 id="checklist-title">Checklist</h2>
+        <div class="head-title">
+          <span class="eyebrow">Output</span>
+          <h2 id="checklist-title">Submission checklist</h2>
+        </div>
         <div class="panel-actions">
-          <button type="button" class="ghost" id="copy-md" disabled>Copy as Markdown</button>
+          <button type="button" class="btn quiet" id="copy-md" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+            Copy as Markdown
+          </button>
         </div>
       </div>
 
       <div id="empty" class="empty">
-        <p><strong>Paste rules to begin.</strong></p>
-        <p>RuleProof keeps only sentences that state a requirement: deadlines, eligibility, deliverables, video limits and repository files. Click any item to see its source.</p>
+        <h3>From a wall of legal text to a list you can finish.</h3>
+        <ol class="steps">
+          <li>
+            <span class="step-n">1</span>
+            <div><b>Paste the rules</b><p>The official rules page or the hackathon overview. English, any length.</p></div>
+          </li>
+          <li>
+            <span class="step-n">2</span>
+            <div><b>Read the checklist</b><p>Deadlines, eligibility, deliverables, video and repository. Click any item to see its source sentence.</p></div>
+          </li>
+          <li>
+            <span class="step-n">3</span>
+            <div><b>Verify your repo</b><p>Required files and visibility are checked against your public GitHub repository.</p></div>
+          </li>
+        </ol>
+        <button type="button" class="btn ghost" id="empty-sample">Try it with sample rules →</button>
       </div>
 
       <div id="results" hidden>
@@ -55,10 +93,13 @@
         <div class="summary" id="summary"></div>
 
         <form class="repo" id="repo-form">
-          <label for="repo-url">Public GitHub repository</label>
+          <label for="repo-url">Verify against your repository</label>
           <div class="repo-row">
-            <input id="repo-url" type="url" inputmode="url" placeholder="https://github.com/you/your-project" autocomplete="off">
-            <button type="submit" class="primary" id="check-repo">Check repo</button>
+            <div class="input-wrap">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="gh"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02a9.56 9.56 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2z"/></svg>
+              <input id="repo-url" type="url" inputmode="url" placeholder="https://github.com/you/your-project" autocomplete="off" spellcheck="false">
+            </div>
+            <button type="submit" class="btn primary" id="check-repo">Check repo</button>
           </div>
           <p id="repo-status" class="repo-status" role="status"></p>
         </form>
@@ -69,7 +110,8 @@
   </main>
 
   <footer class="foot">
-    Runs in your browser. Rules and ticks stay in this browser's storage; repository checks call the public GitHub API.
+    <span>Runs entirely in your browser. Rules and ticks stay in local storage; repository checks call the public GitHub API.</span>
+    <a href="https://github.com/HyunsikParker/ruleproof">Source on GitHub</a>
   </footer>
 
   <script type="module" src="src/app.js"></script>
