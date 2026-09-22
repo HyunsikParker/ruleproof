@@ -134,8 +134,12 @@ export function findVideoLimit(sentence, context = '') {
   }
   m = sentence.match(new RegExp(`\\b(less than|under|no (?:more|longer) than|not (?:to )?exceed(?:ing)?|a maximum of|maximum(?: of)?|max(?:imum)?|up to|shorter than|at most|within)\\s+${NUM}\\s*${UNIT}`, 'i'));
   if (m) return { minMinutes: null, maxMinutes: toMinutes(toNumber(m[2]), m[3]) };
+  const minimum = sentence.match(new RegExp(`\\b(?:at least|a minimum of|minimum of|no shorter than)\\s+(?:an?\\s+)?${NUM}[- ]?\\s*${UNIT}`, 'i'));
   m = sentence.match(new RegExp(`\\b${NUM}[- ](minute|min|second)s?(?:\\s+or\\s+(?:less|shorter))?\\b`, 'i'));
-  if (m) return { minMinutes: null, maxMinutes: toMinutes(toNumber(m[1]), m[2]) };
+  if (m && !(minimum && minimum.index <= m.index && m.index < minimum.index + minimum[0].length)) {
+    return { minMinutes: null, maxMinutes: toMinutes(toNumber(m[1]), m[2]) };
+  }
+  if (minimum) return { minMinutes: toMinutes(toNumber(minimum[1]), minimum[2]), maxMinutes: null };
   return null;
 }
 
@@ -259,7 +263,7 @@ export function extract(text, { fallbackYear } = {}) {
 
     const context = sentences.slice(Math.max(0, n - 2), n).map((x) => x.text).join(' ');
     const limit = findVideoLimit(s.text, context);
-    if (limit && !videoItem) {
+    if (limit && limit.maxMinutes !== null && !videoItem) {
       const range = limit.minMinutes ? `${fmtMin(limit.minMinutes)}–${fmtMin(limit.maxMinutes)} min` : `at most ${fmtMin(limit.maxMinutes)} min`;
       videoItem = {
         id: hashId(['video-limit', s.start]), category: 'video', strength: 'hard',

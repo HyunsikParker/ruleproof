@@ -117,3 +117,10 @@ test('all-caps banners, list intros and text after a blank line are not requirem
   const labels = extract(text).items.map((i) => i.label);
   assert.deepEqual(labels, ['A short description of the project.']);
 });
+
+test('"at least a 1-minute clip" is a minimum, not the video limit', () => {
+  assert.deepEqual(findVideoLimit('Your demonstration video must include at least a 1-minute clip showing the hardware.'), { minMinutes: 1, maxMinutes: null });
+  const text = 'Your demonstration video must include at least a 1-minute clip showing the hardware operating.\nUpload a 3-minute or shorter public YouTube video showing your project working.';
+  const video = extract(text).items.find((i) => i.label.startsWith('Demo video length'));
+  assert.equal(video.label, 'Demo video length: at most 3 min');
+});
