@@ -12,6 +12,8 @@ Try it: https://hyunsikparker.github.io/ruleproof/
 - Shows the deadline as written and in your own time zone, with a countdown. "5:00pm EDT" and "Eastern Time" are resolved with the offset in force on that date.
 - Checks a public GitHub repo: required files (`scope.md`, `README`, `LICENSE`, ...) turn green with the path where they were found, or red when missing.
 - Manual items get a checkbox. Everything is saved in the browser, and the list can be copied as Markdown.
+- **Bookmarklet:** drag "RuleProof this page" to the bookmarks bar, click it on any rules page, and the checklist opens already extracted. The page text travels in the URL fragment, which browsers never send to a server.
+- **Add to calendar:** download the deadline as an `.ics` event with reminders 24 hours and 2 hours before.
 
 Extraction is rule-based. It does not summarize or guess, so every item on the list can be traced to the text.
 
@@ -31,7 +33,7 @@ Then open http://localhost:8000. (Any static server works; ES modules need `http
 node --test
 ```
 
-Node.js 20 or newer. The tests cover sentence splitting, hard/soft wording, file and video-limit detection, time-zone conversion and the GitHub checks (with a stubbed `fetch`).
+Node.js 20 or newer. 30 tests cover sentence splitting, hard/soft wording, file and video-limit detection, time-zone conversion, the GitHub checks (with a stubbed `fetch`), the bookmarklet round trip and the calendar file.
 
 ## How it is built
 
@@ -40,6 +42,7 @@ Node.js 20 or newer. The tests cover sentence splitting, hard/soft wording, file
 | `src/extract.js` | Splits the rules into sentences with character offsets, classifies them, finds files, video limits and deadlines |
 | `src/zones.js` | Maps written zones (EDT, PT, Eastern Time, KST, ...) to IANA zones and converts wall-clock times to UTC |
 | `src/repo.js` | Two unauthenticated GitHub API calls (repo metadata and recursive tree) and file matching |
+| `src/share.js` | Bookmarklet (rules in via URL fragment) and `.ics` deadline export |
 | `src/app.js` | Rendering, highlights, countdown, ticks, persistence, Markdown export |
 | `devpost/` | Scope, PRD, spec and build checklist written before the code |
 
@@ -48,6 +51,7 @@ Node.js 20 or newer. The tests cover sentence splitting, hard/soft wording, file
 - English rules only. Dates must include a month name ("Oct 26, 2026"); numeric dates are not parsed.
 - GitHub only. Unauthenticated API calls are limited to 60 per hour per IP address.
 - One checklist at a time.
+- The bookmarklet reads the page's visible text; rules hidden behind tabs that are not open are not included.
 
 ## Planning
 

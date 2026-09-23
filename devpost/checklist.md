@@ -68,3 +68,4 @@ Wrap-up (familiar plan-first route): the one path worth knowing is `extract()` i
 - All-caps banners and "X is open to:" list intros were listed as requirements; filtered, and a blank line now ends a requirements list.
 - Redesign: document pane with highlighter marks, ticket-style deadline, inline source quote, 4.5:1 contrast, 44px touch targets.
 - Tried five other hackathons' rules: "at least a 1-minute clip" was read as a 1-minute limit. Minimum durations no longer become the video limit.
+- After shipping: two items from `scope.md > Later` built. A bookmarklet imports the current rules page (URL fragment, no server), and the deadline exports as `.ics` with 24 h and 2 h reminders. `src/share.js`, 6 new tests.

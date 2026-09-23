@@ -2,6 +2,7 @@ import { extract, primaryDeadline } from './extract.js';
 import { formatInZone } from './zones.js';
 import { parseRepoUrl, checkRepo, matchFiles } from './repo.js';
 import { SAMPLE_RULES } from './sample.js';
+import { bookmarklet, parseImport, deadlineIcs } from './share.js';
 
 const KEY = 'ruleproof:v1';
 const CATEGORIES = [
@@ -149,6 +150,19 @@ function renderDeadline() {
     </div>
     <div class="tiles" aria-live="off"></div>`;
   el.deadline.querySelector('.written').textContent = d.label;
+  if (d.epochMs !== null) {
+    const cal = document.createElement('button');
+    cal.type = 'button';
+    cal.className = 'btn cal';
+    cal.textContent = 'Add to calendar';
+    cal.addEventListener('click', () => {
+      const ics = deadlineIcs({ epochMs: d.epochMs, label: d.label, title: state.title || 'Hackathon', url: state.src || null });
+      const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })), download: 'deadline.ics' });
+      document.body.append(a); a.click(); a.remove();
+      toast('Calendar file with 24 h and 2 h reminders');
+    });
+    el.deadline.querySelector('.local').after(cal);
+  }
   const local = el.deadline.querySelector('.local');
   if (d.epochMs !== null) {
     local.innerHTML = 'Your time: <b></b>';
@@ -472,4 +486,22 @@ el.input.addEventListener('keydown', (e) => {
 });
 
 load();
+const imported = parseImport(location.hash);
+if (imported) {
+  history.replaceState(null, '', location.pathname + location.search);
+  el.input.value = imported.rules;
+  state.src = imported.src;
+  try { state.title = imported.src ? new URL(imported.src).hostname.replace(/\.devpost\.com$/, '') : null; } catch { state.title = null; }
+  runExtract();
+  toast(`Imported rules${imported.src ? ` from ${new URL(imported.src).hostname}` : ''}`);
+}
 render();
+
+const bmLink = document.getElementById('bm-link');
+bmLink.href = bookmarklet(location.origin + location.pathname);
+bmLink.addEventListener('click', (e) => { e.preventDefault(); toast('Drag this button to your bookmarks bar'); });
+document.getElementById('bm-toggle').addEventListener('click', (e) => {
+  const panel = document.getElementById('bm-panel');
+  panel.hidden = !panel.hidden;
+  e.currentTarget.setAttribute('aria-expanded', String(!panel.hidden));
+});

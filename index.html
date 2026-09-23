@@ -22,6 +22,10 @@
     </a>
     <p class="tagline">Every requirement, with the sentence it came from.</p>
     <nav class="top-actions">
+      <button type="button" class="btn quiet" id="bm-toggle" aria-expanded="false" aria-controls="bm-panel">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>
+        Bookmarklet
+      </button>
       <button type="button" class="btn quiet" id="load-sample">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/></svg>
         Sample rules
@@ -32,6 +36,14 @@
       </button>
     </nav>
   </header>
+
+  <section id="bm-panel" class="bm-panel" hidden>
+    <div>
+      <b>Import any rules page in one click.</b>
+      <p>Drag this button to your bookmarks bar. On a hackathon's rules page, click it: RuleProof opens with that page's text already extracted. The text travels in the URL fragment, which is never sent to a server.</p>
+    </div>
+    <a id="bm-link" class="btn primary" href="#">RuleProof this page</a>
+  </section>
 
   <main class="grid">
     <section class="panel doc" aria-labelledby="rules-title">
