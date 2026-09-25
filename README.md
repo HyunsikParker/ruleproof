@@ -33,7 +33,7 @@ Then open http://localhost:8000. (Any static server works; ES modules need `http
 node --test
 ```
 
-Node.js 20 or newer. 30 tests cover sentence splitting, hard/soft wording, file and video-limit detection, time-zone conversion, the GitHub checks (with a stubbed `fetch`), the bookmarklet round trip and the calendar file.
+Node.js 20 or newer. 31 tests cover sentence splitting, hard/soft wording, file and video-limit detection, time-zone conversion, the GitHub checks (with a stubbed `fetch`), the bookmarklet round trip, calendar text escaping and reminder times relative to the deadline.
 
 ## How it is built
 

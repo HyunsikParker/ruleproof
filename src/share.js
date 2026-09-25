@@ -23,7 +23,7 @@ const icsTime = (ms) => {
   const d = new Date(ms);
   return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
 };
-const icsText = (s) => String(s).replace(/\\/g, '\\\\').replace(/;/g, '\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+const icsText = (s) => String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
 
 // One-event calendar file at the deadline, with alarms 24 h and 2 h before.
 export function deadlineIcs({ epochMs, label, title = 'Hackathon submission deadline', url = null, now = Date.now() }) {
@@ -38,8 +38,8 @@ export function deadlineIcs({ epochMs, label, title = 'Hackathon submission dead
     `SUMMARY:${icsText(`Deadline: ${title}`)}`,
     `DESCRIPTION:${icsText(`Submission deadline as written in the rules: ${label}.${url ? ` Rules: ${url}` : ''}`)}`,
     ...(url ? [`URL:${url}`] : []),
-    'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${icsText(`${title} closes in 24 hours`)}`, 'TRIGGER:-PT24H', 'END:VALARM',
-    'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${icsText(`${title} closes in 2 hours`)}`, 'TRIGGER:-PT2H', 'END:VALARM',
+    'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${icsText(`${title} closes in 24 hours`)}`, 'TRIGGER;RELATED=END:-PT24H', 'END:VALARM',
+    'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${icsText(`${title} closes in 2 hours`)}`, 'TRIGGER;RELATED=END:-PT2H', 'END:VALARM',
     'END:VEVENT', 'END:VCALENDAR',
   ];
   return lines.join('\r\n') + '\r\n';
